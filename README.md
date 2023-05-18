@@ -2,6 +2,12 @@
 
 Create a `dataset.json` file inside `src/data` composed of an array of elements with `id` and `description` properties.
 
+## Generate Dataset
+
+Generate the dataset based on the data on the collections-matic-mainnet subgraph. Will also download thumbnails to obtain the main colors of the item as an extra flavor.
+
+`npm run gen-dataset`
+
 ## Generate Embeddings
 
 Generate the embeddings for each element in the `dataset.json` and store it in your filesystem to be used by the server.
