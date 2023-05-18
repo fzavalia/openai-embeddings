@@ -15,10 +15,26 @@ async function main() {
 
   app.get("*", async (req, res) => {
     try {
-      const { q } = req.query;
+      const { search, threshold: _threshold, limit: _limit } = req.query;
 
-      if (!q) {
-        res.status(400).json({ error: "Missing query parameter 'q'" });
+      if (!search) {
+        res.status(400).json({ error: "'search' is mandatory" });
+
+        return;
+      }
+
+      const threshold = _threshold ? parseFloat(_threshold) : 0.5;
+
+      if (threshold <= 0 || threshold > 1) {
+        res.status(400).json({ error: "'threshold' must be between 0 and 1" });
+
+        return;
+      }
+
+      const limit = _limit ? parseInt(_limit) : 20;
+
+      if (limit <= 0) {
+        res.status(400).json({ error: "'limit' must be greater than 0" });
 
         return;
       }
@@ -27,7 +43,7 @@ async function main() {
 
       const createEmbeddingResult = await openai.createEmbedding({
         model: "text-embedding-ada-002",
-        input: q,
+        input: search,
       });
 
       const embeddings = JSON.parse(
@@ -45,10 +61,13 @@ async function main() {
       similarities.sort((a, b) => b.similarity - a.similarity);
 
       res.json({
-        data: similarities.map((s) => ({
-          id: s.id,
-          similarity: s.similarity,
-        })),
+        data: similarities
+          .filter((s) => s.similarity >= threshold)
+          .slice(0, limit)
+          .map((s) => ({
+            id: s.id,
+            similarity: s.similarity,
+          })),
       });
     } catch (e) {
       res.status(500).json({ error: e.message });
