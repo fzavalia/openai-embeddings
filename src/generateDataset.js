@@ -6,61 +6,43 @@ const pLimit = require("p-limit");
 const namer = require("color-namer");
 
 async function main() {
-  const response = await fetch("https://api.thegraph.com/subgraphs/name/decentraland/collections-matic-mainnet", {
-    method: "post",
-    body: JSON.stringify({
-      query: `
-      {
-        items(first:150, where:{itemType:wearable_v2}) {
-          collection {
-            id
-          }
-          blockchainId
-          image
-          metadata {
-            wearable {
-              name
-              description
-              category
-            }
-          }
-        }
-      }
-      `,
-    }),
-  });
-
-  const { data } = await response.json();
+  const items = await getItems();
 
   const limit = pLimit(5);
 
   const input = [];
 
-  for (const item of data.items) {
+  for (const item of items) {
     async function getColors() {
-      console.log("Getting colors for", item.collection.id, item.blockchainId);
+      try {
+        console.log("Getting colors for", `${item.collection.id}-${item.blockchainId}`);
 
-      const p = path.resolve(__dirname, "temp", `${item.collection.id}-${item.blockchainId}.png`);
-      const res = await fetch(item.image);
+        const p = path.resolve(__dirname, "temp", `${item.collection.id}-${item.blockchainId}.png`);
+        const res = await fetch(item.image);
 
-      if (res.status !== 200) {
+        if (res.status !== 200) {
+          return [];
+        }
+
+        const fileStream = fs.createWriteStream(p);
+        const stream = res.body.pipe(fileStream);
+
+        await new Promise((resolve, reject) => {
+          stream.on("finish", resolve);
+          stream.on("error", reject);
+        });
+
+        const buffer = fs.readFileSync(p);
+        const colors = await getImageColors(buffer, { count: 2, type: "image/png" });
+
+        fs.rmSync(p);
+
+        return colors.map((c) => namer(c.hex()).basic[0].name);
+      } catch (e) {
+        console.log("Could not get colors for", `${item.collection.id}-${item.blockchainId}`, e.message);
+
         return [];
       }
-
-      const fileStream = fs.createWriteStream(p);
-      const stream = res.body.pipe(fileStream);
-
-      await new Promise((resolve, reject) => {
-        stream.on("finish", resolve);
-        stream.on("error", reject);
-      });
-
-      const buffer = fs.readFileSync(p);
-      const colors = await getImageColors(buffer, { count: 2, type: "image/png" });
-
-      fs.rmSync(p);
-
-      return colors.map((c) => namer(c.hex()).basic[0].name);
     }
 
     input.push(
@@ -80,6 +62,60 @@ async function main() {
   const output = await Promise.all(input);
 
   fs.writeFileSync(path.resolve(__dirname, "data", "dataset.json"), JSON.stringify(output, null, 2));
+}
+
+async function getItems() {
+  const limit = pLimit(3);
+
+  const input = [
+    limit(() => querySubgraph(100, "eyebrows")),
+    limit(() => querySubgraph(100, "facial_hair")),
+    limit(() => querySubgraph(250, "hair")),
+    limit(() => querySubgraph(100, "mouth")),
+    limit(() => querySubgraph(500, "upper_body")),
+    limit(() => querySubgraph(500, "lower_body")),
+    limit(() => querySubgraph(100, "feet")),
+    limit(() => querySubgraph(250, "earring")),
+    limit(() => querySubgraph(250, "hat")),
+    limit(() => querySubgraph(100, "helmet")),
+    limit(() => querySubgraph(100, "mask")),
+    limit(() => querySubgraph(100, "tiara")),
+    limit(() => querySubgraph(250, "top_head")),
+  ];
+
+  const results = await Promise.all(input);
+
+  return results.reduce((acc, next) => acc.concat(next), []);
+}
+
+async function querySubgraph(first, category) {
+  const response = await fetch("https://api.thegraph.com/subgraphs/name/decentraland/collections-matic-mainnet", {
+    method: "post",
+    body: JSON.stringify({
+      query: `
+          {
+            items(first: ${first}, where:{ searchIsStoreMinter:true, searchWearableCategory: ${category} }) {
+              collection {
+                id
+              }
+              blockchainId
+              image
+              metadata {
+                wearable {
+                  name
+                  description
+                  category
+                }
+              }
+            }
+          }
+          `,
+    }),
+  });
+
+  const { data } = await response.json();
+
+  return data.items;
 }
 
 main();
