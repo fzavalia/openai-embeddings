@@ -8,7 +8,7 @@ const namer = require("color-namer");
 async function main() {
   const items = await getItems();
 
-  const limit = pLimit(10);
+  const limit = pLimit(50);
 
   const input = [];
 
@@ -69,22 +69,22 @@ async function main() {
 }
 
 async function getItems() {
-  const limit = pLimit(3);
+  const limit = pLimit(5);
 
   const input = [
-    limit(() => querySubgraph(200, "eyebrows")),
-    limit(() => querySubgraph(200, "facial_hair")),
-    limit(() => querySubgraph(500, "hair")),
-    limit(() => querySubgraph(200, "mouth")),
+    limit(() => querySubgraph(1000, "eyebrows")),
+    limit(() => querySubgraph(1000, "facial_hair")),
+    limit(() => querySubgraph(1000, "hair")),
+    limit(() => querySubgraph(1000, "mouth")),
     limit(() => querySubgraph(1000, "upper_body")),
     limit(() => querySubgraph(1000, "lower_body")),
-    limit(() => querySubgraph(200, "feet")),
-    limit(() => querySubgraph(500, "earring")),
-    limit(() => querySubgraph(500, "hat")),
-    limit(() => querySubgraph(200, "helmet")),
-    limit(() => querySubgraph(200, "mask")),
-    limit(() => querySubgraph(200, "tiara")),
-    limit(() => querySubgraph(500, "top_head")),
+    limit(() => querySubgraph(1000, "feet")),
+    limit(() => querySubgraph(1000, "earring")),
+    limit(() => querySubgraph(1000, "hat")),
+    limit(() => querySubgraph(1000, "helmet")),
+    limit(() => querySubgraph(1000, "mask")),
+    limit(() => querySubgraph(1000, "tiara")),
+    limit(() => querySubgraph(1000, "top_head")),
   ];
 
   const results = await Promise.all(input);
