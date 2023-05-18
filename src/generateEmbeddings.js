@@ -11,7 +11,7 @@ async function main() {
 
   const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPEN_AI_KEY }));
 
-  const limit = pLimit(5);
+  const limit = pLimit(10);
 
   const input = [];
 
