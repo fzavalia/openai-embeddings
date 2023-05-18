@@ -8,23 +8,25 @@ const namer = require("color-namer");
 async function main() {
   const items = await getItems();
 
-  const limit = pLimit(5);
+  const limit = pLimit(10);
 
   const input = [];
 
   for (const item of items) {
     async function getColors() {
+      console.log("Getting colors for", `${item.collection.id}-${item.blockchainId}`);
+
+      const thumbnailPath = path.resolve(__dirname, "temp", `${item.collection.id}-${item.blockchainId}.png`);
+      const res = await fetch(item.image);
+
+      if (res.status !== 200) {
+        console.log("Error getting colors for", `${item.collection.id}-${item.blockchainId}`);
+
+        return [];
+      }
+
       try {
-        console.log("Getting colors for", `${item.collection.id}-${item.blockchainId}`);
-
-        const p = path.resolve(__dirname, "temp", `${item.collection.id}-${item.blockchainId}.png`);
-        const res = await fetch(item.image);
-
-        if (res.status !== 200) {
-          return [];
-        }
-
-        const fileStream = fs.createWriteStream(p);
+        const fileStream = fs.createWriteStream(thumbnailPath);
         const stream = res.body.pipe(fileStream);
 
         await new Promise((resolve, reject) => {
@@ -32,16 +34,18 @@ async function main() {
           stream.on("error", reject);
         });
 
-        const buffer = fs.readFileSync(p);
+        const buffer = fs.readFileSync(thumbnailPath);
         const colors = await getImageColors(buffer, { count: 2, type: "image/png" });
-
-        fs.rmSync(p);
 
         return colors.map((c) => namer(c.hex()).basic[0].name);
       } catch (e) {
-        console.log("Could not get colors for", `${item.collection.id}-${item.blockchainId}`, e.message);
+        console.log("Error getting colors for", `${item.collection.id}-${item.blockchainId}`, e.message);
 
         return [];
+      } finally {
+        if (fs.existsSync(thumbnailPath)) {
+          fs.rmSync(thumbnailPath);
+        }
       }
     }
 
@@ -68,19 +72,19 @@ async function getItems() {
   const limit = pLimit(3);
 
   const input = [
-    limit(() => querySubgraph(100, "eyebrows")),
-    limit(() => querySubgraph(100, "facial_hair")),
-    limit(() => querySubgraph(250, "hair")),
-    limit(() => querySubgraph(100, "mouth")),
-    limit(() => querySubgraph(500, "upper_body")),
-    limit(() => querySubgraph(500, "lower_body")),
-    limit(() => querySubgraph(100, "feet")),
-    limit(() => querySubgraph(250, "earring")),
-    limit(() => querySubgraph(250, "hat")),
-    limit(() => querySubgraph(100, "helmet")),
-    limit(() => querySubgraph(100, "mask")),
-    limit(() => querySubgraph(100, "tiara")),
-    limit(() => querySubgraph(250, "top_head")),
+    limit(() => querySubgraph(200, "eyebrows")),
+    limit(() => querySubgraph(200, "facial_hair")),
+    limit(() => querySubgraph(500, "hair")),
+    limit(() => querySubgraph(200, "mouth")),
+    limit(() => querySubgraph(1000, "upper_body")),
+    limit(() => querySubgraph(1000, "lower_body")),
+    limit(() => querySubgraph(200, "feet")),
+    limit(() => querySubgraph(500, "earring")),
+    limit(() => querySubgraph(500, "hat")),
+    limit(() => querySubgraph(200, "helmet")),
+    limit(() => querySubgraph(200, "mask")),
+    limit(() => querySubgraph(200, "tiara")),
+    limit(() => querySubgraph(500, "top_head")),
   ];
 
   const results = await Promise.all(input);
@@ -89,6 +93,8 @@ async function getItems() {
 }
 
 async function querySubgraph(first, category) {
+  console.log(`Getting ${first} items of ${category} category`);
+
   const response = await fetch("https://api.thegraph.com/subgraphs/name/decentraland/collections-matic-mainnet", {
     method: "post",
     body: JSON.stringify({
