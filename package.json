@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "server": "node src/server.js",
-    "generateEmbeddings": "node src/server.js"
+    "gen-embeddings": "node src/generateEmbeddings.js"
   },
   "keywords": [],
   "author": "",
