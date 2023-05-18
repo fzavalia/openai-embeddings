@@ -14,6 +14,7 @@
   "dependencies": {
     "color-namer": "^1.4.0",
     "compute-cosine-similarity": "^1.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "get-image-colors": "^4.0.1",

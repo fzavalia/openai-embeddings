@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const similarity = require("compute-cosine-similarity");
 const morgan = require("morgan");
+const cors = require("cors");
 
 async function main() {
   dotenv.config();
@@ -12,6 +13,8 @@ async function main() {
   const app = express();
 
   app.use(morgan("dev"));
+
+  app.use(cors());
 
   app.get("*", async (req, res) => {
     try {
