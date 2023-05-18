@@ -4,3 +4,4 @@ src/data/*
 !src/data/.gitkeep
 src/temp/*
 !src/temp/.gitkeep
+.DS_Store
