@@ -4,17 +4,21 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "server": "node src/server.js",
-    "gen-embeddings": "node src/generateEmbeddings.js"
+    "gen-dataset": "node src/generateDataset.js",
+    "gen-embeddings": "node src/generateEmbeddings.js",
+    "server": "node src/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "color-namer": "^1.4.0",
     "compute-cosine-similarity": "^1.0.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "get-image-colors": "^4.0.1",
     "morgan": "^1.10.0",
+    "node-fetch": "^2.6.11",
     "openai": "^3.2.1",
     "p-limit": "^3.1.0"
   }

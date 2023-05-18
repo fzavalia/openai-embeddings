@@ -16,12 +16,12 @@ After having the embeddings generated, run the server with:
 
 This will expose a server on `:8080`
 
-`GET *?search={string}&threshold={float}&limit={number}`
+```
+GET *?search={string}&threshold={float}&limit={number}
+```
 
-`search` is the input used to search for elements that have a description that might fit.
-
-`threshold` is the minimum similarity value the element must have to the input. Ranges from 0 to 1.
-
-`limit` is the maximum amount of elements to be returned.
+- `search` is the input used to search for elements that have a description that might fit.
+- `threshold` is the minimum similarity value the element must have to the input. Ranges from 0 to 1.
+- `limit` is the maximum amount of elements to be returned.
 
 Responds with an array of elements sorted (DESC) by similarity to the search prompt.
