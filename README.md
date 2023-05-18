@@ -16,7 +16,7 @@ After having the embeddings generated, run the server with:
 
 This will expose a server on `:8080`
 
-`GET *?search={string}&threshold={float}&limit={number}
+`GET *?search={string}&threshold={float}&limit={number}`
 
 `search` is the input used to search for elements that have a description that might fit.
 
