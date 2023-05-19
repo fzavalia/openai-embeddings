@@ -14,6 +14,8 @@ Generate the embeddings for each element in the `dataset.json` and store it in y
 
 `npm run gen-embeddings`
 
+The server only need the embeddings to work, the original dataset is required only to generate those embeddings.
+
 ## Server
 
 After having the embeddings generated, run the server with:
