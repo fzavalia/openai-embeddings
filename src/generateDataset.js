@@ -72,19 +72,19 @@ async function getItems() {
   const limit = pLimit(5);
 
   const input = [
-    limit(() => querySubgraph(1000, "eyebrows")),
-    limit(() => querySubgraph(1000, "facial_hair")),
-    limit(() => querySubgraph(1000, "hair")),
-    limit(() => querySubgraph(1000, "mouth")),
-    limit(() => querySubgraph(1000, "upper_body")),
-    limit(() => querySubgraph(1000, "lower_body")),
-    limit(() => querySubgraph(1000, "feet")),
-    limit(() => querySubgraph(1000, "earring")),
-    limit(() => querySubgraph(1000, "hat")),
-    limit(() => querySubgraph(1000, "helmet")),
-    limit(() => querySubgraph(1000, "mask")),
-    limit(() => querySubgraph(1000, "tiara")),
-    limit(() => querySubgraph(1000, "top_head")),
+    limit(() => querySubgraph(3000, "eyebrows")),
+    limit(() => querySubgraph(3000, "facial_hair")),
+    limit(() => querySubgraph(3000, "hair")),
+    limit(() => querySubgraph(3000, "mouth")),
+    limit(() => querySubgraph(3000, "upper_body")),
+    limit(() => querySubgraph(3000, "lower_body")),
+    limit(() => querySubgraph(3000, "feet")),
+    limit(() => querySubgraph(3000, "earring")),
+    limit(() => querySubgraph(3000, "hat")),
+    limit(() => querySubgraph(3000, "helmet")),
+    limit(() => querySubgraph(3000, "mask")),
+    limit(() => querySubgraph(3000, "tiara")),
+    limit(() => querySubgraph(3000, "top_head")),
   ];
 
   const results = await Promise.all(input);
@@ -95,12 +95,28 @@ async function getItems() {
 async function querySubgraph(first, category) {
   console.log(`Getting ${first} items of ${category} category`);
 
-  const response = await fetch("https://api.thegraph.com/subgraphs/name/decentraland/collections-matic-mainnet", {
-    method: "post",
-    body: JSON.stringify({
-      query: `
+  const max = 1000;
+
+  const iterations = Math.trunc(first / max);
+
+  let output = [];
+
+  for (let i = 0; i < iterations; i++) {
+    const filters = `
+    first: ${max}, 
+    skip: ${i * max}, 
+    where: { 
+      searchIsStoreMinter: true, 
+      searchWearableCategory: ${category} 
+    }
+    `;
+
+    const response = await fetch("https://api.thegraph.com/subgraphs/name/decentraland/collections-matic-mainnet", {
+      method: "post",
+      body: JSON.stringify({
+        query: `
           {
-            items(first: ${first}, where:{ searchIsStoreMinter:true, searchWearableCategory: ${category} }) {
+            items(${filters}) {
               collection {
                 id
               }
@@ -116,12 +132,15 @@ async function querySubgraph(first, category) {
             }
           }
           `,
-    }),
-  });
+      }),
+    });
 
-  const { data } = await response.json();
+    const { data } = await response.json();
 
-  return data.items;
+    output = output.concat(data.items);
+  }
+
+  return output;
 }
 
 main();
